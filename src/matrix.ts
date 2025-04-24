@@ -8,7 +8,7 @@ export default class Matrix {
         this.numCols = numCols;
         this.data = Array.from({ length: this.numRows }, () => Array(this.numCols).fill(fill));
         if (randomize) {
-            this.apply(() => Math.random());
+            this.apply(() => (Math.random() * 2 - 1));
         }
     }
 

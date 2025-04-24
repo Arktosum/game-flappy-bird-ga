@@ -1,5 +1,5 @@
 import Matrix from "./matrix";
-import { Dense, Layer, ReLU, Softmax } from "./nn";
+import { Dense, Layer, ReLU, Sigmoid, Softmax } from "./nn";
 
 
 
@@ -9,12 +9,12 @@ export class Brain {
     layers: Layer[];
     constructor() {
         this.layers = [
-            new Dense(6 * 9, 10),
+            new Dense(1, 10),
             new ReLU(),
             new Dense(10, 10),
             new ReLU(),
-            new Dense(10, (6 * 2) + 1), // 6 colors and 2 orientations + 1 no move state
-            new Softmax()
+            new Dense(10, 1),
+            new Sigmoid()
         ]
     }
     forward(x: Matrix) {
@@ -77,8 +77,8 @@ export class GeneticAlgorithm {
         // Keep best k
         let best_k_brains = this.find_best_k(K, all_fitness_scores);
         let fitness_probabilities = Matrix.toArray(Softmax.softmax(Matrix.fromArray(all_fitness_scores)));
-        // elitism + roulette wheel selection
-
+        // // elitism + roulette wheel selection
+        console.log(best_k_brains)
         let selected_population = [...best_k_brains];
         for (let i = 0; i < this.population_size - K; i++) {
             let sample = randomSample(fitness_probabilities);
@@ -93,7 +93,7 @@ export class GeneticAlgorithm {
         })
         let sorted_fitness_index = fitness_index.sort((a, b) => -(a[0] - b[0]));
 
-        return sorted_fitness_index.slice(k);
+        return sorted_fitness_index.slice(0,k);
 
     }
 

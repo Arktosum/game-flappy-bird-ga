@@ -27,6 +27,20 @@ export class ReLU implements Layer {
 }
 
 
+export class Sigmoid implements Layer {
+    static sigmoid(x: number) {
+        return (1 / (1 + Math.exp(-x)));
+    }
+    forward(x: Matrix) {
+        let output = x.copy()
+        output.apply((value) => Sigmoid.sigmoid(value));
+        return output;
+    }
+}
+
+
+
+
 export class Softmax implements Layer {
 
     // Compute the softmax of a column vector matrix
