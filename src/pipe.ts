@@ -9,14 +9,16 @@ export default class Pipe {
     gapHeight: number;
     bottomHeight: number;
     passedBirds: Set<number>;
+    color: string;
     constructor(x: number, y: number, canvas: Canvas) {
         this.position = { x, y };
         this.canvas = canvas;
         this.width = 150;
         this.topHeight = 100 + Math.random() * canvas.height / 2;
-        this.gapHeight = 400;
+        this.gapHeight = 200;
         this.bottomHeight = this.canvas.height - (this.topHeight + this.gapHeight)
         this.passedBirds = new Set<number>();
+        this.color = 'green'
     }
     hasPassed(bird: Bird) {
         if (bird.dead) return; // We don't care about dead birds
@@ -30,8 +32,8 @@ export default class Pipe {
         this.position.x -= 0.3 * delta_time;
     }
     draw() {
-        this.canvas.drawRect(this.position.x, this.position.y, this.width, this.topHeight, { 'fillStyle': 'green' });
-        this.canvas.drawRect(this.position.x, this.position.y + this.topHeight + this.gapHeight, this.width, this.bottomHeight, { 'fillStyle': 'green' });
+        this.canvas.drawRect(this.position.x, this.position.y, this.width, this.topHeight, { 'fillStyle': this.color });
+        this.canvas.drawRect(this.position.x, this.position.y + this.topHeight + this.gapHeight, this.width, this.bottomHeight, { 'fillStyle': this.color });
     }
 
 }

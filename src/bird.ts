@@ -1,11 +1,12 @@
 import { Canvas } from "./canvas";
+import { GeneticAgent } from "./genetic";
 import Matrix from "./matrix";
+import { LayerType, NeuralNetwork } from "./nn";
 import Pipe from "./pipe";
 
 
 
-export default class Bird {
-
+export default class Bird implements GeneticAgent {
     position: { x: number; y: number; };
     radius: any;
     id: number;
@@ -17,6 +18,9 @@ export default class Bird {
     score: number;
     survivalTimePoint: number;
     passedPipePoint: number;
+    lastJumped: number;
+    jumpTimeout_ms: number;
+    geneticExpression: NeuralNetwork
     constructor(x: number, y: number, canvas: Canvas) {
         this.position = { x, y }
         this.radius = 30;
@@ -29,10 +33,58 @@ export default class Bird {
         this.survivalTimePoint = 0.01;
         this.passedPipePoint = 30;
         this.score = 0;
+        this.lastJumped = Date.now()
+        this.jumpTimeout_ms = 500; // ms
+
+        this.geneticExpression = new NeuralNetwork();
+
+        this.geneticExpression.addLayer(LayerType.DENSE, 4, 5);
+        this.geneticExpression.addLayer(LayerType.RELU);
+        this.geneticExpression.addLayer(LayerType.DENSE, 5, 5);
+        this.geneticExpression.addLayer(LayerType.RELU);
+        this.geneticExpression.addLayer(LayerType.DENSE, 5, 1);
+        this.geneticExpression.addLayer(LayerType.SIGMOID);
+    }
+    think(pipes: Pipe[]) {
+        let closestPipe = pipes[0];
+        let closestDistance = Infinity;
+        for (let pipe of pipes) {
+            let distance = (pipe.position.x + pipe.width) - (this.position.x + this.radius);
+            if (distance < 0) continue;
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestPipe = pipe;
+            }
+        }
+        closestPipe.color = 'gray';
+        let inputArray = [this.position.y / this.canvas.height, this.velocity.y / this.canvas.height, closestPipe.topHeight / this.canvas.height, (closestPipe.topHeight + closestPipe.gapHeight) / this.canvas.height]
+        let inputVector = Matrix.fromArray(inputArray);
+
+        let outputVector = this.geneticExpression.forward(inputVector);
+        let outputResult = outputVector.sum();
+        if (outputResult > 0.5) {
+            this.jump();
+        }
+    }
+    getFitness() {
+        return this.score;
+    }
+    clone() {
+        let new_bird = new Bird(200, this.canvas.height / 2, this.canvas);
+        new_bird.geneticExpression = this.geneticExpression.clone();
+        return new_bird;
+    }
+    cross(other: Bird) {
+        let new_bird = new Bird(200, this.canvas.height / 2, this.canvas);
+        new_bird.geneticExpression = this.geneticExpression.cross(other.geneticExpression);
+        return new_bird;
+    }
+    mutate(mutationRate: number) {
+        this.geneticExpression.mutate(mutationRate);
     }
     kill() {
         this.dead = true;
-        this.color = 'red'
+        this.color = '#ffffff00'
     }
     passedPipe() {
         this.score += this.passedPipePoint;
@@ -48,6 +100,7 @@ export default class Bird {
         this.score += this.survivalTimePoint;
         if ((this.position.y - this.radius) < 0 || (this.position.y + this.radius) > this.canvas.height) {
             this.kill();
+            this.score -= 20;
         }
     }
     draw() {
@@ -55,7 +108,11 @@ export default class Bird {
     }
     jump() {
         if (this.dead) return;
-        this.velocity.y = -0.4;
+        const currentTime = Date.now();
+        const difference = currentTime - this.lastJumped;
+        if (difference > this.jumpTimeout_ms) {
+            this.velocity.y = -0.4;
+        }
     }
     isColliding(pipe: Pipe) {
         if (this.dead) return;
@@ -66,10 +123,12 @@ export default class Bird {
 
         return top_pipe_collision || bottom_pipe_collision || top_pipe_inside_center || bottom_pipe_inside_center;
     }
+
     handleCollision(pipe: Pipe) {
         if (this.dead) return;
         if (this.isColliding(pipe)) {
             this.kill();
+            this.score -= 50;
         }
     }
 }

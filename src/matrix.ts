@@ -11,22 +11,20 @@ export default class Matrix {
             this.apply(() => (Math.random() * 2 - 1));
         }
     }
-
     // Print the shape and contents of the matrix
     print() {
         console.log(`Shape: (${this.numRows}, ${this.numCols})`);
         console.table(this.data);
     }
-
     // Apply a callback function to each element in the matrix
     apply(callback: (x: number, rowIndex: number, colIndex: number) => number) {
+        /* Inplace */
         for (let i = 0; i < this.numRows; i++) {
             for (let j = 0; j < this.numCols; j++) {
                 this.data[i][j] = callback(this.data[i][j], i, j);
             }
         }
     }
-
     // Check if two matrices have the same shape
     static isSameShape(A: Matrix, B: Matrix) {
         return A.numRows === B.numRows && A.numCols === B.numCols;
@@ -98,7 +96,6 @@ export default class Matrix {
     clone() {
         return this.copy();
     }
-
     // Return the transpose of the matrix
     transpose() {
         const result = new Matrix(this.numCols, this.numRows, false);
