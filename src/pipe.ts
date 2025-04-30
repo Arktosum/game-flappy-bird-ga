@@ -3,39 +3,37 @@ import { Canvas } from "./canvas";
 
 export default class Pipe {
     position: { x: number; y: number; };
-    velocity: { x: number; y: number; };
     canvas: Canvas;
     width: number;
-    height: number;
-    top_height: number;
-    gap: number;
-    is_crossed: Record<number, boolean>;
+    topHeight: number;
+    gapHeight: number;
+    bottomHeight: number;
+    passedBirds: Set<number>;
     constructor(x: number, y: number, canvas: Canvas) {
-        this.canvas = canvas
         this.position = { x, y };
-        this.velocity = { x: -0.1, y: 0 };
-        this.width = 70;
-        this.height = this.canvas.height;
-        this.top_height = 100 + Math.random() * 300;
-        this.gap = 150;
-        this.is_crossed = {};
+        this.canvas = canvas;
+        this.width = 150;
+        this.topHeight = 100 + Math.random() * canvas.height / 2;
+        this.gapHeight = 400;
+        this.bottomHeight = this.canvas.height - (this.topHeight + this.gapHeight)
+        this.passedBirds = new Set<number>();
     }
-    update(deltaTime: number) {
-        this.position.x += this.velocity.x * deltaTime;
-        this.position.y += this.velocity.y * deltaTime;
-
+    hasPassed(bird: Bird) {
+        if (bird.dead) return; // We don't care about dead birds
+        if (this.passedBirds.has(bird.id)) return; // We don't care about birds that have already passed!
+        if (bird.position.x > this.position.x + this.width / 2) {
+            bird.passedPipe();
+            this.passedBirds.add(bird.id);
+        }
     }
-    hasCrossed(bird: Bird) {
-        if (!(bird.id in this.is_crossed)) {
-            this.is_crossed[bird.id] = false;
-        }
-        if (((bird.position.x + bird.radius) > (this.position.x + this.width)) && !this.is_crossed[bird.id]) {
-            bird.score++;
-            this.is_crossed[bird.id] = true;
-        }
+    update(delta_time: number) {
+        this.position.x -= 0.3 * delta_time;
     }
     draw() {
-        this.canvas.drawRect(this.position.x, 0, this.width, this.top_height, { fillStyle: 'green' });
-        this.canvas.drawRect(this.position.x, this.top_height + this.gap, this.width, this.canvas.height, { fillStyle: 'green' });
+        this.canvas.drawRect(this.position.x, this.position.y, this.width, this.topHeight, { 'fillStyle': 'green' });
+        this.canvas.drawRect(this.position.x, this.position.y + this.topHeight + this.gapHeight, this.width, this.bottomHeight, { 'fillStyle': 'green' });
     }
+
 }
+
+
