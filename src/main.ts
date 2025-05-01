@@ -23,7 +23,7 @@ function generatePipe() {
 
 let pipeGenerator = setInterval(generatePipe, 3 * 1000);
 
-const POPULATION_SIZE = 200;
+const POPULATION_SIZE = 1000;
 let geneticAlgorithm = new GeneticAlgorithm(POPULATION_SIZE, () => {
   return new Bird(200, canvas.height / 2, canvas)
 })

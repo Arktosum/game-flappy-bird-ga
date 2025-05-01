@@ -4,7 +4,44 @@ import Matrix from "./matrix";
 import { LayerType, NeuralNetwork } from "./nn";
 import Pipe from "./pipe";
 
+function randomInt(min: number, max: number): number {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 
+function pickRandomColor() {
+    let red = randomInt(100, 255);
+    let blue = randomInt(100, 255);
+    let green = randomInt(100, 255);
+
+    const red_hex = red.toString(16).padStart(2, '0');
+    const blue_hex = blue.toString(16).padStart(2, '0');
+    const green_hex = green.toString(16).padStart(2, '0');
+
+    let color_string = '#' + red_hex + blue_hex + green_hex;
+    return color_string;
+}
+
+function crossColor(Acolor: string, BColor: string) {
+
+    const Ared = parseInt(Acolor[1] + Acolor[2], 16);
+    const ABlue = parseInt(Acolor[3] + Acolor[4], 16);
+    const AGreen = parseInt(Acolor[5] + Acolor[6], 16);
+
+    const Bred = parseInt(BColor[1] + BColor[2], 16);
+    const BBlue = parseInt(BColor[3] + BColor[4], 16);
+    const BGreen = parseInt(BColor[5] + BColor[6], 16);
+
+    const mixRed = Math.floor((Ared + Bred) / 2);
+    const mixBlue = Math.floor((ABlue + BBlue) / 2);
+    const mixGreen = Math.floor((AGreen + BGreen) / 2);
+
+    const red_hex = mixRed.toString(16).padStart(2, '0');
+    const blue_hex = mixBlue.toString(16).padStart(2, '0');
+    const green_hex = mixGreen.toString(16).padStart(2, '0');
+
+    let color_string = '#' + red_hex + blue_hex + green_hex;
+    return color_string;
+}
 
 export default class Bird implements GeneticAgent {
     position: { x: number; y: number; };
@@ -28,13 +65,13 @@ export default class Bird implements GeneticAgent {
         this.velocity = { x: 0, y: 0 }
         this.acceleration = { x: 0, y: 0.001 };
         this.dead = false;
-        this.color = 'yellow'
+        this.color = pickRandomColor();
         this.id = Math.random() + Date.now();
         this.survivalTimePoint = 0.01;
         this.passedPipePoint = 30;
         this.score = 0;
         this.lastJumped = Date.now()
-        this.jumpTimeout_ms = 500; // ms
+        this.jumpTimeout_ms = 750; // ms
 
         this.geneticExpression = new NeuralNetwork();
 
@@ -72,11 +109,13 @@ export default class Bird implements GeneticAgent {
     clone() {
         let new_bird = new Bird(200, this.canvas.height / 2, this.canvas);
         new_bird.geneticExpression = this.geneticExpression.clone();
+        new_bird.color = this.color;
         return new_bird;
     }
     cross(other: Bird) {
         let new_bird = new Bird(200, this.canvas.height / 2, this.canvas);
         new_bird.geneticExpression = this.geneticExpression.cross(other.geneticExpression);
+        new_bird.color = crossColor(new_bird.color, this.color);
         return new_bird;
     }
     mutate(mutationRate: number) {
@@ -84,7 +123,6 @@ export default class Bird implements GeneticAgent {
     }
     kill() {
         this.dead = true;
-        this.color = '#ffffff00'
     }
     passedPipe() {
         this.score += this.passedPipePoint;
@@ -104,6 +142,7 @@ export default class Bird implements GeneticAgent {
         }
     }
     draw() {
+        if (this.dead) return;
         this.canvas.drawCircle(this.position.x, this.position.y, this.radius, { fillStyle: this.color })
     }
     jump() {

@@ -18,8 +18,8 @@ class Layer {
     clone() {
         return this as Layer;
     }
-    cross(){
-        
+    cross(other: Layer) {
+        return this as Layer;
     }
 }
 
@@ -53,6 +53,19 @@ class Dense implements Layer {
             return x;
         })
     }
+    cross(other: Dense) {
+        let new_cross_weights = this.weights.clone();
+        new_cross_weights.apply((_, i, j) => this.weights.data[i][j] * 0.5 + other.weights.data[i][j] * 0.5);
+
+        let new_cross_biases = this.biases.clone();
+        new_cross_biases.apply((_, i, j) => this.biases.data[i][j] * 0.5 + other.biases.data[i][j] * 0.5);
+
+        let new_layer = new Dense(this.n_inputs, this.n_outputs);
+        new_layer.weights = new_cross_weights;
+        new_layer.biases = new_cross_biases;
+        return new_layer;
+
+    }
     clone() {
         let new_layer = new Dense(this.n_inputs, this.n_outputs);
         new_layer.weights = this.weights.clone();
@@ -73,7 +86,9 @@ class ReLU implements Layer {
     }
     mutate(mutationRate: number) {
         // Do nothing
-
+    }
+    cross() {
+        return this;
     }
     clone() {
         return this; // Don't really need clone
@@ -95,6 +110,9 @@ class Sigmoid implements Layer {
     }
     clone() {
         return this; // Don't really need clone
+    }
+    cross() {
+        return this;
     }
     mutate(mutationRate: number) {
         // Do nothing

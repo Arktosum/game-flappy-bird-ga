@@ -5,6 +5,7 @@ export class GeneticAgent {
     getFitness(): number { return 0 }
     clone(): GeneticAgent { return this }
     mutate(mutationRate: number): void { }
+    cross(other: GeneticAgent): GeneticAgent { return this }
 }
 
 
@@ -64,7 +65,6 @@ export class GeneticAlgorithm {
 
             let sampleIndex2 = sampleProbability(fitness_probabilities);
             let parent_2 = this.population[sampleIndex2];
-
             let crossed_baby = parent_1.cross(parent_2);
             crossed_baby.mutate(this.mutationRate)
             new_population.push(crossed_baby);
